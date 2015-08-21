@@ -25,14 +25,17 @@ def make_logger(
         fmt=_format,
         filename=None,
         when="D",
-        interval=1):
+        interval=1,
+        propagate=False):
     logger = logging.getLogger("mast")
     logger.addHandler(logging.NullHandler())
     logger.info("received request for logger {}".format(name))
 
     _logger = logging.getLogger(name)
     if _logger.handlers:
-        return _logger
+        if name != "mast" or len(_logger.handlers) > 1:
+            return _logger
+
     _logger.setLevel(level)
     _formatter = logging.Formatter(fmt)
 
@@ -51,6 +54,7 @@ def make_logger(
     _handler.setFormatter(_formatter)
     _handler.setLevel(level)
     _logger.addHandler(_handler)
+    _logger.propagate = propagate
     logger.debug("Finished building logger {}".format(name))
     return _logger
 
