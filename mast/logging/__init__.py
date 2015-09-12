@@ -2,21 +2,27 @@ import logging
 from functools import wraps
 from logging.handlers import TimedRotatingFileHandler
 from mast.config import get_configs_dict
-from mast.timestamp import Timestamp
 import os
 
 mast_home = os.environ["MAST_HOME"] or os.getcwd()
 
 config = get_configs_dict()
 config = config["logging.conf"]
-
 level = int(config["logging"]["level"])
-filename = config['logging']['file']
-dp_filename = filename.replace("mast", "DataPower")
-filename = os.path.join(mast_home, filename)
-dp_filename = os.path.join(mast_home, dp_filename)
+unit = config["logging"]["rolling_unit"]
+interval = int(config["logging"]["rolling_interval"])
+propagate = bool(config["logging"]["propagate"])
+backup_count = int(config["logging"]["backup_count"])
+
+
 filemode = "a"
-_format = "level=%(levelname)s; datetime=%(asctime)s; process_name=%(processName)s; pid=%(process)d; thread=%(thread)d; message=%(message)s"
+_format = "; ".join((
+    "level=%(levelname)s",
+    "datetime=%(asctime)s",
+    "process_name=%(processName)s",
+    "pid=%(process)d",
+    "thread=%(thread)d",
+    "message=%(message)s"))
 
 
 def make_logger(
@@ -24,24 +30,19 @@ def make_logger(
         level=level,
         fmt=_format,
         filename=None,
-        when="D",
-        interval=1,
-        propagate=False):
-    logger = logging.getLogger("mast")
-    logger.addHandler(logging.NullHandler())
-    logger.info("received request for logger {}".format(name))
-
+        when=unit,
+        interval=interval,
+        propagate=propagate,
+        backup_count=backup_count):
     _logger = logging.getLogger(name)
     if _logger.handlers:
-        if name != "mast" or len(_logger.handlers) > 1:
+        if len(_logger.handlers) > 1:
             return _logger
 
     _logger.setLevel(level)
     _formatter = logging.Formatter(fmt)
 
     if not filename:
-        logger.debug(
-            "filename not provided for logger {}, generating...".format(name))
         _filename = "{}.log".format(name)
         _filename = os.path.join(
             mast_home,
@@ -49,13 +50,11 @@ def make_logger(
             "log",
             _filename)
         filename = _filename
-        logger.debug("filename generated {}".format(filename))
     _handler = TimedRotatingFileHandler(filename, when=when, interval=interval)
     _handler.setFormatter(_formatter)
     _handler.setLevel(level)
     _logger.addHandler(_handler)
     _logger.propagate = propagate
-    logger.debug("Finished building logger {}".format(name))
     return _logger
 
 
@@ -77,7 +76,7 @@ def _format_arguments(args, kwargs):
         arguments += _format_kwargs(kwargs)
     return arguments
 
-    
+
 def _escape(string):
     return string.replace(
         "\n", "").replace(
@@ -95,13 +94,16 @@ class logged(object):
         def inner(*args, **kwargs):
             logger = make_logger(self.name)
             arguments = _format_arguments(args, kwargs)
-            msg = "Attempting to execute {}({})".format(func.__name__, arguments)            
-            logger.info(msg)
+
+            logger.info(
+                "Attempting to execute {}({})".format(
+                    func.__name__, arguments))
             try:
                 result = func(*args, **kwargs)
             except:
                 logger.exception(
-                    "An unhandled exception occurred while attempting to execute {}({})".format(
+                    "An unhandled exception occurred while "
+                    "attempting to execute {}({})".format(
                         func.__name__, arguments))
                 raise
             _result = _escape(repr(result))
@@ -116,4 +118,3 @@ class logged(object):
 
 logger = make_logger("mast")
 dp_logger = make_logger("DataPower")
-
