@@ -36,7 +36,7 @@ def make_logger(
         backup_count=backup_count):
     _logger = logging.getLogger(name)
     if _logger.handlers:
-        if len(_logger.handlers) > 1:
+        if len(_logger.handlers) >= 1:
             return _logger
 
     _logger.setLevel(level)
