@@ -116,5 +116,7 @@ class logged(object):
             return result
         return inner
 
-logger = make_logger("mast")
-dp_logger = make_logger("DataPower")
+# Test to see if this breaks anything
+
+#logger = make_logger("mast")
+#dp_logger = make_logger("DataPower")
