@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from mast.timestamp import Timestamp
 from logging.handlers import TimedRotatingFileHandler
 from mast.config import get_configs_dict
 import os
@@ -50,7 +51,24 @@ def make_logger(
             "log",
             _filename)
         filename = _filename
-    _handler = TimedRotatingFileHandler(filename, when=when, interval=interval)
+    try:
+        _handler = TimedRotatingFileHandler(
+            filename,
+            when=when,
+            interval=interval)
+    except IOError:
+        from getpass import getuser
+        fname = os.path.basename(filename)
+        filename = filename.replace(
+            fname,
+            "{}-{}-{}".format(
+                Timestamp().timestamp,
+                getuser(),
+                fname))
+        _handler = TimedRotatingFileHandler(
+            filename,
+            when=when,
+            interval=interval)
     _handler.setFormatter(_formatter)
     _handler.setLevel(level)
     _logger.addHandler(_handler)
