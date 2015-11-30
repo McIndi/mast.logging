@@ -134,7 +134,5 @@ class logged(object):
             return result
         return inner
 
-# Test to see if this breaks anything
-
-#logger = make_logger("mast")
-#dp_logger = make_logger("DataPower")
+logger = make_logger("mast")
+dp_logger = make_logger("DataPower")
