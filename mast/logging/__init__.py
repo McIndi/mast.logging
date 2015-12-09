@@ -217,9 +217,17 @@ class logged(object):
         function("value_1", "value_2")
     """
     def __init__(self, name="mast"):
+        """
+        __Initialization__: for internal use only.
+        """
         self.name = name
 
     def __call__(self, func):
+        """
+        Called when this decorator is used to decorate a function
+        or method. This is for internal use, you shouldn't need to
+        call this in your code.
+        """
         @wraps(func)
         def inner(*args, **kwargs):
             logger = make_logger(self.name)
