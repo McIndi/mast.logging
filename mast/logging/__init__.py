@@ -45,30 +45,24 @@ def make_logger(
 
     if not filename:
         _filename = "{}.log".format(name)
-        _filename = os.path.join(
-            mast_home,
-            "var",
-            "log",
-            _filename)
+        if "mastd" in os.environ:
+            _filename = os.path.join(
+                mast_home,
+                "var",
+                "log",
+                "mastd",
+                _filename)
+        else:
+            _filename = os.path.join(
+                mast_home,
+                "var",
+                "log",
+                _filename)
         filename = _filename
-    try:
-        _handler = TimedRotatingFileHandler(
-            filename,
-            when=when,
-            interval=interval)
-    except IOError:
-        from getpass import getuser
-        fname = os.path.basename(filename)
-        filename = filename.replace(
-            fname,
-            "{}-{}-{}".format(
-                Timestamp().timestamp,
-                getuser(),
-                fname))
-        _handler = TimedRotatingFileHandler(
-            filename,
-            when=when,
-            interval=interval)
+    _handler = TimedRotatingFileHandler(
+        filename,
+        when=when,
+        interval=interval)
     _handler.setFormatter(_formatter)
     _handler.setLevel(level)
     _logger.addHandler(_handler)
