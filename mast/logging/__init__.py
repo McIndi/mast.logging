@@ -11,7 +11,7 @@ including the arguments passed in along with the return value. See
 
 Usage:
 
-    #!python
+    :::python
     from mast.logging import make_logger, logged
 
     logger = make_logger("my_module")
@@ -107,7 +107,7 @@ def make_logger(
     To use this function in your scripts, you would import it and call this
     function like this:
 
-        #!python
+        :::python
         from mast.logging import make_logger
 
         logger = make_logger("my_module")
@@ -207,7 +207,7 @@ class logged(object):
 
     Usage:
 
-        #!python
+        :::python
         from mast.logging import logged
 
         @logged("my_module")
