@@ -59,14 +59,32 @@ def make_logger(
                 "log",
                 _filename)
         filename = _filename
-    _handler = TimedRotatingFileHandler(
-        filename,
-        when=when,
-        interval=interval)
-    _handler.setFormatter(_formatter)
-    _handler.setLevel(level)
-    _logger.addHandler(_handler)
-    _logger.propagate = propagate
+    try:
+        _handler = TimedRotatingFileHandler(
+            filename,
+            when=when,
+            interval=interval)
+        _handler.setFormatter(_formatter)
+        _handler.setLevel(level)
+        _logger.addHandler(_handler)
+        _logger.propagate = propagate
+    except IOError:
+        from getpass import getuser
+        fname = os.path.basename(filename)
+        filename = filename.replace(
+            fname,
+            "{}-{}-{}".format(
+                Timestamp().timestamp,
+                getuser(),
+                fname))
+        _handler = TimedRotatingFileHandler(
+            filename,
+            when=when,
+            interval=interval)
+        _handler.setFormatter(_formatter)
+        _handler.setLevel(level)
+        _logger.addHandler(_handler)
+        _logger.propagate = propagate
     return _logger
 
 
