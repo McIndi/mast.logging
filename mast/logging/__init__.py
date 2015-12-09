@@ -1,11 +1,11 @@
 """
 This module provides two major objects:
 
-1. make_logger: A function which will return a `logging.Logger`
+1. __make_logger__: A function which will return a `logging.Logger`
 instance which is configured with a
 `logging.handlers.TimedRotatingFileHandler` handler. See [The functions documentation](#make_logger)
 for more details
-2. logged: A decorator which will log the execution of a function
+2. __logged__: A decorator which will log the execution of a function
 including the arguments passed in along with the return value. See
 [the decorators documentation](#logged) for more details.
 
@@ -77,28 +77,28 @@ def make_logger(
 
     Parameters:
 
-    * name - Required. the name of the logger instance. This follows
+    * __name__ - Required. the name of the logger instance. This follows
     conventions mentioned [here](https://docs.python.org/2/library/logging.html#logger-objects)
-    * level - The logging level to listen for. Accepts an `int` or
+    * __level__ - The logging level to listen for. Accepts an `int` or
     one of the logging modules convenience constants defined
     [here](https://docs.python.org/2/library/logging.html#logging-levels)
-    * fmt - The format of the log message, see
+    * __fmt__ - The format of the log message, see
     [here](https://docs.python.org/2/library/logging.html#formatter-objects)
     and [here](https://docs.python.org/2/library/logging.html#logrecord-attributes)
     for more details
-    * filename - The filename to log to. Defaults to the name of the logger
+    * __filename__ - The filename to log to. Defaults to the name of the logger
     appended with `.log` in the `$MAST_HOME/var/log` directory or
     `$MAST_HOME/var/log/mastd` directory if running as `mastd`
-    * when - The time unit to use for rolling over the log file
+    * __when__ - The time unit to use for rolling over the log file
     as detailed [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
-    * interval - The number of time units to wait before rolling the
+    * __interval__ - The number of time units to wait before rolling the
     log files as detailed [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
-    * propagate - Whether to propagate log messages up the ancestry chain
+    * __propagate__ - Whether to propagate log messages up the ancestry chain
     (ie. if you have a logger `mast.datapower`, and propagate is set to
     `False` messages sent to the this logger will not be propagated to the
     `mast` logger). See [here](https://docs.python.org/2/library/logging.html#logging.Logger.propagate)
     for more details.
-    * backup_count - The number of "rolled" log files to keep, see
+    * __backup_count__ - The number of "rolled" log files to keep, see
     [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
     for more details.
 
@@ -202,7 +202,7 @@ class logged(object):
 
     Parameters:
 
-    * name - The name of the logger to create or use, this also
+    * __name__ - The name of the logger to create or use, this also
     dictates the log filename.
 
     Usage:
