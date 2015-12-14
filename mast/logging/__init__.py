@@ -193,46 +193,13 @@ def _escape(string):
         '"', "&quot;")
 
 
-class logged(object):
-    """
-    This is a decorator which will accept an optional parameter,
-    name, and make a logger with `mast.logging.make_logger` and
-    log the execution of the decorated function including arguments
-    passed in to the function and the return value.
+def logged(name="mast"):
+    def _decorator(func):
 
-    Parameters:
-
-    * __name__ - The name of the logger to create or use, this also
-    dictates the log filename.
-
-    Usage:
-
-        :::python
-        from mast.logging import logged
-
-        @logged("my_module")
-        def function(arg1, arg2=None):
-            do_something(arg1, arg2)
-
-        function("value_1", "value_2")
-    """
-    def __init__(self, name="mast"):
-        """
-        __Initialization__: for internal use only.
-        """
-        self.name = name
-
-    def __call__(self, func):
-        """
-        Called when this decorator is used to decorate a function
-        or method. This is for internal use, you shouldn't need to
-        call this in your code.
-        """
         @wraps(func)
-        def inner(*args, **kwargs):
-            logger = make_logger(self.name)
+        def _wrapper(*args, **kwargs):
+            logger = make_logger(name)
             arguments = _format_arguments(args, kwargs)
-
             logger.info(
                 "Attempting to execute {}({})".format(
                     func.__name__, arguments))
@@ -250,9 +217,9 @@ class logged(object):
                 arguments,
                 _result)
             logger.info(msg)
-
             return result
-        return inner
+        return _wrapper
+    return _decorator
 
 logger = make_logger("mast")
 dp_logger = make_logger("DataPower")
