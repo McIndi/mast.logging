@@ -1,11 +1,13 @@
 """
+_module_: `mast.logging`
+
 This module provides two major objects:
 
-1. __make_logger__: A function which will return a `logging.Logger`
+1. `make_logger`: A function which will return a `logging.Logger`
 instance which is configured with a
-`logging.handlers.TimedRotatingFileHandler` handler. See [The functions documentation](#make_logger)
-for more details
-2. __logged__: A decorator which will log the execution of a function
+`logging.handlers.TimedRotatingFileHandler` handler. See the
+functions documentation for more details
+2. `logged`: A decorator which will log the execution of a function
 including the arguments passed in along with the return value. See
 [the decorators documentation](#logged) for more details.
 
@@ -65,6 +67,8 @@ def make_logger(
         propagate=propagate,
         backup_count=backup_count):
     """
+    _function_: `mast.logging.make_logger(name, level=level, fmt=_format, filename=None, when=unit, interval=interval, propagate=propagate, backup_count=backup_count)`
+
     Returns an instance of logging.Logger configured with
     a [logging.handlers.TimedRotatingFileHandler](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
     handler.
@@ -77,35 +81,32 @@ def make_logger(
 
     Parameters:
 
-    * __name__ - Required. the name of the logger instance. This follows
+    * `name`: Required. the name of the logger instance. This follows
     conventions mentioned [here](https://docs.python.org/2/library/logging.html#logger-objects)
-    * __level__ - The logging level to listen for. Accepts an `int` or
+    * `level`: The logging level to listen for. Accepts an `int` or
     one of the logging modules convenience constants defined
     [here](https://docs.python.org/2/library/logging.html#logging-levels)
-    * __fmt__ - The format of the log message, see
+    * `fmt`: The format of the log message, see
     [here](https://docs.python.org/2/library/logging.html#formatter-objects)
     and [here](https://docs.python.org/2/library/logging.html#logrecord-attributes)
     for more details
-    * __filename__ - The filename to log to. Defaults to the name of the logger
+    * `filename`: The filename to log to. Defaults to the name of the logger
     appended with `.log` in the `$MAST_HOME/var/log` directory or
     `$MAST_HOME/var/log/mastd` directory if running as `mastd`
-    * __when__ - The time unit to use for rolling over the log file
+    * `when`: The time unit to use for rolling over the log file
     as detailed [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
-    * __interval__ - The number of time units to wait before rolling the
+    * `interval`: The number of time units to wait before rolling the
     log files as detailed [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
-    * __propagate__ - Whether to propagate log messages up the ancestry chain
+    * `propagate`: Whether to propagate log messages up the ancestry chain
     (ie. if you have a logger `mast.datapower`, and propagate is set to
     `False` messages sent to the this logger will not be propagated to the
     `mast` logger). See [here](https://docs.python.org/2/library/logging.html#logging.Logger.propagate)
     for more details.
-    * __backup_count__ - The number of "rolled" log files to keep, see
+    * `backup_count`: The number of "rolled" log files to keep, see
     [here](https://docs.python.org/2/library/logging.handlers.html#timedrotatingfilehandler)
     for more details.
 
     Usage:
-
-    To use this function in your scripts, you would import it and call this
-    function like this:
 
         :::python
         from mast.logging import make_logger
@@ -168,14 +169,51 @@ def make_logger(
 
 
 def _format_args(args):
+    """
+    _function_: `mast.logging._format_args(args)`
+
+    Used by `mast.logging.logged` to format the arguments passed to
+    the decorated function.
+
+    Parameters:
+
+    * `args`: The arguments passed to the decorated function. They will
+    coerced into a `str`, surrounded by single quotes and seperated by
+    a comma.
+    """
     return ", ".join(("'" + str(arg) + "'" for arg in args))
 
 
 def _format_kwargs(kwargs):
+    """
+    _function_: `mast.logging._format_kwargs(kwargs)`
+
+    Used by `mast.logging.logged` to format the arguments passed to
+    the decorated function.
+
+    Parameters:
+
+    * `kwargs`: The keyword-arguments passed to the decorated function. They
+    will be represented like `'key'='value',`
+    """
     return str(kwargs).replace("{", "").replace("}", "").replace(": ", "=")
 
 
 def _format_arguments(args, kwargs):
+    """
+    _function_: `mast.logging._format_arguments(args, kwargs)`
+
+    Used by `mast.logging.logged` to format the arguments and
+    keyword-arguments passed to the decorated function.
+
+    Parameters:
+
+    * `args`: The arguments passed to the decorated function. They will
+    coerced into a `str`, surrounded by single quotes and seperated by
+    a comma.
+    * `kwargs`: The keyword-arguments passed to the decorated function. They
+    will be represented like `'key'='value',`
+    """
     arguments = ""
     if args:
         arguments += _format_args(args)
@@ -186,6 +224,16 @@ def _format_arguments(args, kwargs):
     return arguments
 
 def _escape(string):
+    """
+    _function_: `mast.logging._escape(string)`
+
+    Returns `string` with newlines removed and with single and double quotes
+    replaced with `&apos;` and `&quot;` respectively.
+
+    Parameters:
+
+    * `string`: The string to escape
+    """
     return string.replace(
         "\n", "").replace(
         "\r", "").replace(
@@ -194,6 +242,28 @@ def _escape(string):
 
 
 def logged(name="mast"):
+    """
+    _function_: `mast.logging.logged(name="mast")`
+
+    This function is a decorator which will log all calls to the
+    decorated function along with any arguments passed in.
+
+    Parameters:
+
+    * `name`: The name of the logger to use. This will be used to
+    construct the name of the log file as well.
+
+    Usage:
+
+        :::python
+        from mast.logging import logged
+
+        @logged("my_module.function_1")
+        def function_1(args):
+            do_something(args)
+
+        function_1("some_value")
+    """
     def _decorator(func):
 
         @wraps(func)
