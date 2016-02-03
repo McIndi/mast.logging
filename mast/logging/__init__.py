@@ -154,7 +154,7 @@ def make_logger(
         filename = filename.replace(
             fname,
             "{}-{}-{}".format(
-                Timestamp().timestamp,
+                Timestamp()._epoch,
                 getuser(),
                 fname))
         _handler = TimedRotatingFileHandler(
