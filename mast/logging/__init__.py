@@ -35,6 +35,7 @@ from mast.config import get_configs_dict
 import os
 
 mast_home = os.environ["MAST_HOME"] or os.getcwd()
+__version__ = "{}-0".format(os.environ["MAST_VERSION"])
 
 config = get_configs_dict()
 config = config["logging.conf"]
