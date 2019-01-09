@@ -30,28 +30,27 @@ Usage:
 import logging
 from functools import wraps
 from mast.timestamp import Timestamp
-from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import RotatingFileHandler
 from mast.config import get_configs_dict
+import getpass
 import os
 
-mast_home = os.environ["MAST_HOME"] or os.getcwd()
+mast_home = os.environ["MAST_HOME"]
 __version__ = "{}-0".format(os.environ["MAST_VERSION"])
 
 config = get_configs_dict()
 config = config["logging.conf"]
 level = int(config["logging"]["level"])
-unit = config["logging"]["rolling_unit"]
-interval = int(config["logging"]["rolling_interval"])
-propagate = bool(config["logging"]["propagate"])
+max_bytes = config["logging"]["max_bytes"]
 backup_count = int(config["logging"]["backup_count"])
+delay = bool(config["logging"]["delay"])
+propagate = bool(config["logging"]["propagate"])
 
 
-filemode = "a"
+filemode = "w"
 _format = "; ".join((
     "'level'='%(levelname)s'",
     "'datetime'='%(asctime)s'",
-    "'process_name'='%(processName)s'",
-    "'pid'='%(process)d'",
     "'thread'='%(thread)d'",
     "'module'='%(module)s'",
     "'line'='%(lineno)d'",
@@ -62,11 +61,11 @@ def make_logger(
         name,
         level=level,
         fmt=_format,
-        filename=None,
-        when=unit,
-        interval=interval,
+        max_bytes=max_bytes,
+        backup_count=backup_count,
+        delay=delay,
         propagate=propagate,
-        backup_count=backup_count):
+    ):
     """
     _function_: `mast.logging.make_logger(name, level=level, fmt=_format, filename=None, when=unit, interval=interval, propagate=propagate, backup_count=backup_count)`
 
@@ -116,6 +115,7 @@ def make_logger(
         logger.info("informational message")
         logger.debug("debug message")
     """
+    t = Timestamp()
     _logger = logging.getLogger(name)
     if _logger.handlers:
         if len(_logger.handlers) >= 1:
@@ -124,48 +124,30 @@ def make_logger(
     _logger.setLevel(level)
     _formatter = logging.Formatter(fmt)
 
-    if not filename:
-        _filename = "{}.log".format(name)
-        if "mastd" in os.environ:
-            _filename = os.path.join(
-                mast_home,
-                "var",
-                "log",
-                "mastd",
-                _filename)
-        else:
-            _filename = os.path.join(
-                mast_home,
-                "var",
-                "log",
-                _filename)
-        filename = _filename
-    try:
-        _handler = TimedRotatingFileHandler(
-            filename,
-            when=when,
-            interval=interval)
-        _handler.setFormatter(_formatter)
-        _handler.setLevel(level)
-        _logger.addHandler(_handler)
-        _logger.propagate = propagate
-    except IOError:
-        from getpass import getuser
-        fname = os.path.basename(filename)
-        filename = filename.replace(
-            fname,
-            "{}-{}-{}".format(
-                Timestamp()._epoch,
-                getuser(),
-                fname))
-        _handler = TimedRotatingFileHandler(
-            filename,
-            when=when,
-            interval=interval)
-        _handler.setFormatter(_formatter)
-        _handler.setLevel(level)
-        _logger.addHandler(_handler)
-        _logger.propagate = propagate
+    pid = os.getpid()
+    directory = os.path.join(
+        mast_home,
+        "var",
+        "log",
+        getpass.getuser(),
+        str(pid),
+    )
+    filename = os.path.join(
+        directory,
+        "{}-{}.log".format(name, t.timestamp),
+    )
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    _handler = RotatingFileHandler(
+        filename,
+        maxBytes=max_bytes,
+        backupCount=backup_count,
+        delay=delay,
+    )
+    _handler.setFormatter(_formatter)
+    _handler.setLevel(level)
+    _logger.addHandler(_handler)
+    _logger.propagate = propagate
     return _logger
 
 
@@ -280,13 +262,17 @@ def logged(name="mast"):
                 logger.exception(
                     "An unhandled exception occurred while "
                     "attempting to execute {}({})".format(
-                        func.__name__, arguments))
+                        func.__name__,
+                        arguments
+                    )
+                )
                 raise
             _result = _escape(repr(result))
             msg = "Finished execution of {}({}). Result: {}".format(
                 func.__name__,
                 arguments,
-                _result)
+                _result
+            )
             logger.info(msg)
             return result
         return _wrapper
