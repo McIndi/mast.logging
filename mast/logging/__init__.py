@@ -130,7 +130,7 @@ def make_logger(
         "var",
         "log",
         getpass.getuser(),
-        str(pid),
+        "{}-{}".format(t.timestamp, str(pid)),
     )
     filename = os.path.join(
         directory,
@@ -218,10 +218,14 @@ def _escape(string):
     * `string`: The string to escape
     """
     return string.replace(
-        "\n", "").replace(
-        "\r", "").replace(
-        "'", "&apos;").replace(
-        '"', "&quot;")
+        "\n", ""
+    ).replace(
+        "\r", ""
+    ).replace(
+        "'", "&apos;"
+    ).replace(
+        '"', "&quot;"
+    )
 
 
 def logged(name="mast"):

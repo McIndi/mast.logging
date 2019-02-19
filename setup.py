@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "mast.logging",
-    version = "2.2.0",
+    version = "2.3.1",
     author = "Clifford Bressette",
     author_email = "cliffordbressette@mcindi.com",
     description = ("A module to ease the process of logging."),
